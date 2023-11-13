@@ -18,4 +18,5 @@ public class Produto {
     private String descricao;
     private double preco;
     private int estoque;
+    private String loja;
 }
