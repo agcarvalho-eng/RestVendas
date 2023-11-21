@@ -35,6 +35,10 @@ public class ProdutoController {
     private final ProdutoRepository repository;
     @PutMapping("/{id}")
     public void update(@PathVariable long id, @RequestBody Produto produto){
+        if(id!= produto.getId())
+            throw  new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "O id indicado na URL não corresponde com o ID do objeto recebido");
         repository.save(produto);
     }
     @PostMapping
