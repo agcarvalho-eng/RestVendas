@@ -77,8 +77,12 @@ public class ProdutoController {
      * @return
      */
 
+    @GetMapping("/ean/{ean:\\d{9}}")
+    public Produto findByEan(@PathVariable final String ean){
+        return repository.findByEan(ean).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+    }
     @GetMapping("/{loja}/{ean}")
-    public Produto findByEAN(@PathVariable String loja, @PathVariable String ean){
+    public Produto findByEanAndLoja(@PathVariable String ean, @PathVariable String loja){
         return repository.findByEanAndLoja(ean, loja).orElseThrow(() ->
                 new ResponseStatusException(HttpStatus.NOT_FOUND));//Já fazendo o tratamento do erro.
                 /**new Produto(0L, "TV", ean, "TV LCD", 1000, 100, loja);**/
