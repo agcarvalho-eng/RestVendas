@@ -5,9 +5,11 @@ import io.github.agcarvalhoeng.apirestvendas.repository.ProdutoRepository;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.net.URI;
 import java.util.List;
 
 /**
@@ -34,16 +36,22 @@ public class ProdutoController {
      */
     private final ProdutoRepository repository;
     @PutMapping("/{id}")
-    public void update(@PathVariable long id, @RequestBody Produto produto){
-        if(id!= produto.getId())
-            throw  new ResponseStatusException(
-                    HttpStatus.CONFLICT,
-                    "O id indicado na URL não corresponde com o ID do objeto recebido");
-        repository.save(produto);
+    public ResponseEntity<Produto> update(@PathVariable long id, @RequestBody Produto produto){
+        if (id == produto.getId()) {
+            return ResponseEntity.accepted().body(repository.save(produto));
+        }
+        return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        /**throw  new ResponseStatusException(
+            *HttpStatus.CONFLICT,
+            *"O id indicado na URL não corresponde com o ID do objeto recebido");**/
     }
     @PostMapping
-    public long insert(@RequestBody Produto produto){
-        return repository.save(produto).getId();
+    public ResponseEntity<Produto> insert(@RequestBody Produto produto){
+        produto = repository.save(produto);
+        URI location = URI.create("/produto/" + produto.getId());
+        return ResponseEntity.created(location)
+                .body(produto);
+        //return repository.save(produto).getId();
     }
 
     @DeleteMapping("/{id}")
@@ -60,21 +68,31 @@ public class ProdutoController {
 
     /**Método para buscar o Id do produto.
      * No GetMapping tem-se o endereço (URL) e entre chaves o parâmetro que irá receber.
-     * @param id
-     * @return
+     */
+
+    /**
+     * ResponseEntity significa "Entidade de Resposta".
+     * Entidade é um objeto, mas isso nada mais é do que
+     * um tipo que indica uma resposta de uma API HTTP (REST)
      */
     @GetMapping("/{id}")
     // @PathVariable = vamos utilizar Path Param.
-    public Produto findById(@PathVariable final Long id){
-        return repository.findById(id).orElseThrow(() ->
-                new ResponseStatusException(HttpStatus.NOT_FOUND));//Já fazendo o tratamento do erro.
+    public ResponseEntity<Produto> findById(@PathVariable final Long id){
+        return  repository.findById(id)
+                /** "::" é chamado de method reference (referência de método).
+                 *Usado para passar uma função por parâmetro para outro.
+                 */
+                .map(ResponseEntity::ok) // Só chama o map se o produto foi localizado.
+                .orElseGet(() -> ResponseEntity.notFound().build()); //Senão, executa o orElseGet.
+        //return ResponseEntity.ok(repository.findById(id).orElseThrow(() ->
+               // new ResponseStatusException(HttpStatus.NOT_FOUND)));
+        //return repository.findById(id).orElseThrow(() ->
+               // new ResponseStatusException(HttpStatus.NOT_FOUND));//Já fazendo o tratamento do erro.
                 /**new Produto(id, "TV","123", "TV LCD", 1000, 100,"Palmas");**/
     }
 
     /**Método para buscar o EAN (código de barras) do produto.
      * No GetMapping tem-se o endereço (URL) e entre chaves o parâmetro que irá receber.
-     * @param ean
-     * @return
      */
 
     @GetMapping("/ean/{ean:\\d{9}}")
