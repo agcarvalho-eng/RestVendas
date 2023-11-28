@@ -2,6 +2,7 @@ package io.github.agcarvalhoeng.apirestvendas.controller;
 
 import io.github.agcarvalhoeng.apirestvendas.model.Produto;
 import io.github.agcarvalhoeng.apirestvendas.repository.ProdutoRepository;
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -36,7 +37,8 @@ public class ProdutoController {
      */
     private final ProdutoRepository repository;
     @PutMapping("/{id}")
-    public ResponseEntity<Produto> update(@PathVariable long id, @RequestBody Produto produto){
+    public ResponseEntity<Produto> update(@PathVariable long id, @Valid @RequestBody Produto produto){
+        //@Valid realiza a validação dos campos.
         if (id == produto.getId()) {
             return ResponseEntity.accepted().body(repository.save(produto));
         }
@@ -46,7 +48,8 @@ public class ProdutoController {
             *"O id indicado na URL não corresponde com o ID do objeto recebido");**/
     }
     @PostMapping
-    public ResponseEntity<Produto> insert(@RequestBody Produto produto){
+    public ResponseEntity<Produto> insert(@Valid @RequestBody Produto produto){ //@Valid verifica se foi repassado um parâmetro válido.
+        //Se não é um dado válido nem executa o método.
         produto = repository.save(produto);
         URI location = URI.create("/produto/" + produto.getId());
         return ResponseEntity.created(location)
